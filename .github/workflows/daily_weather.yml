@@ -1,0 +1,28 @@
+name: 10h sáng - Thời tiết Hà Nội
+
+on:
+  schedule:
+    - cron: '0 3 * * *'  # 10h sáng giờ Việt Nam (UTC+7)
+  workflow_dispatch:      # Cho phép chạy thủ công để test
+
+jobs:
+  send-weather:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: pip install requests
+
+      - name: Gửi thời tiết Hà Nội
+        run: python scripts/send_weather.py
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
