@@ -1,0 +1,42 @@
+name: 7h tối - Tin quỹ đầu tư Crypto
+
+on:
+  schedule:
+    - cron: '0 12 * * *'  # 7h tối giờ Việt Nam (UTC+7)
+  workflow_dispatch:       # Cho phép chạy thủ công để test
+
+jobs:
+  send-fund-news:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: pip install requests
+
+      - name: Install Tempo CLI
+        run: |
+          sudo apt-get install -y libusb-1.0-0 2>/dev/null || true
+          curl -fsSL https://tempo.xyz/install | bash || true
+          ~/.tempo/bin/tempoup --unsafe-skip-verify || true
+
+      - name: Configure Tempo Wallet
+        run: |
+          mkdir -p ~/.tempo/wallet
+          printf '[rpc]\n[telemetry]\nenabled = false\n' > ~/.tempo/config.toml
+          echo "$TEMPO_KEYS_TOML" > ~/.tempo/wallet/keys.toml
+        env:
+          TEMPO_KEYS_TOML: ${{ secrets.TEMPO_KEYS_TOML }}
+
+      - name: Gửi tin quỹ đầu tư Crypto
+        run: python scripts/send_fund_news.py
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
