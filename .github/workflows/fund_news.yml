@@ -27,13 +27,13 @@ jobs:
           curl -fsSL https://tempo.xyz/install | bash || true
           ~/.tempo/bin/tempoup --unsafe-skip-verify || true
 
-      - name: Configure Tempo Wallet
+      - name: Configure Tempo Wallet (Ví 2)
         run: |
           mkdir -p ~/.tempo/wallet
           printf '[rpc]\n[telemetry]\nenabled = false\n' > ~/.tempo/config.toml
-          echo "$TEMPO_KEYS_TOML" > ~/.tempo/wallet/keys.toml
+          echo "$TEMPO_KEYS_TOML_W2" > ~/.tempo/wallet/keys.toml
         env:
-          TEMPO_KEYS_TOML: ${{ secrets.TEMPO_KEYS_TOML }}
+          TEMPO_KEYS_TOML_W2: ${{ secrets.TEMPO_KEYS_TOML_W2 }}
 
       - name: Gửi tin quỹ đầu tư Crypto
         run: python scripts/send_fund_news.py
