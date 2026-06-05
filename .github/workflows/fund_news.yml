@@ -24,8 +24,12 @@ jobs:
       - name: Install Tempo CLI
         run: |
           sudo apt-get install -y libusb-1.0-0 2>/dev/null || true
-          curl -fsSL https://tempo.xyz/install | bash || true
-          ~/.tempo/bin/tempoup --unsafe-skip-verify || true
+          for i in 1 2 3; do
+            curl -fsSL https://tempo.xyz/install | bash && \
+            ~/.tempo/bin/tempoup --unsafe-skip-verify && break
+            echo "Retry $i failed, waiting 10s..."
+            sleep 10
+          done
 
       - name: Configure Tempo Wallet (Ví 2)
         run: |
