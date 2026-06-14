@@ -13,15 +13,18 @@ FLUX_URL = "https://stablestudio.dev/api/generate/flux-2-pro/generate"
 JOBS_URL = "https://stablestudio.dev/api/jobs/{}"
 
 
-def tempo_post(url, body):
-    result = subprocess.run(
-        [TEMPO_BIN, "request", "-j", "-X", "POST", "--json", json.dumps(body), url],
-        capture_output=True, text=True, timeout=90
-    )
-    output = result.stdout.strip() or result.stderr.strip()
-    if result.returncode != 0:
-        raise RuntimeError(f"tempo POST failed: {output}")
-    return output
+def tempo_post(url, body, retries=3):
+    for attempt in range(retries):
+        result = subprocess.run(
+            [TEMPO_BIN, "request", "-j", "-X", "POST", "--json", json.dumps(body), url],
+            capture_output=True, text=True, timeout=90
+        )
+        output = result.stdout.strip() or result.stderr.strip()
+        if result.returncode == 0 and output:
+            return output
+        print(f"  tempo_post attempt {attempt+1}/{retries} failed (rc={result.returncode}): {output[:100]}")
+        time.sleep(3)
+    raise RuntimeError(f"tempo POST failed after {retries} attempts")
 
 
 def tempo_get(url):

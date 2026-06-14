@@ -36,6 +36,9 @@ jobs:
         env:
           TEMPO_KEYS_TOML_W2: ${{ secrets.TEMPO_KEYS_TOML_W2 }}
 
+      - name: Warm up Tempo CLI
+        run: ~/.tempo/bin/tempo request --help > /dev/null || true
+
       - name: Generate & send image facts
         run: python scripts/image_facts.py
         env:
