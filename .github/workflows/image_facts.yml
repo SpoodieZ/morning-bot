@@ -1,0 +1,43 @@
+name: 9h sáng - Ảnh fact hàng ngày (Flux 2 Pro)
+
+on:
+  schedule:
+    - cron: '0 2 * * *'   # 9:00 VN (UTC+7)
+  workflow_dispatch:
+
+jobs:
+  image-facts:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Tempo CLI
+        run: |
+          sudo apt-get install -y libusb-1.0-0 2>/dev/null || true
+          for i in 1 2 3; do
+            curl -fsSL https://tempo.xyz/install | bash && \
+            ~/.tempo/bin/tempoup --unsafe-skip-verify && break
+            echo "Retry $i failed, waiting 10s..."
+            sleep 10
+          done
+
+      - name: Configure Tempo Wallet (Ví 2)
+        run: |
+          mkdir -p ~/.tempo/wallet
+          printf '[rpc]\n[telemetry]\nenabled = false\n' > ~/.tempo/config.toml
+          echo "$TEMPO_KEYS_TOML_W2" > ~/.tempo/wallet/keys.toml
+        env:
+          TEMPO_KEYS_TOML_W2: ${{ secrets.TEMPO_KEYS_TOML_W2 }}
+
+      - name: Generate & send image facts
+        run: python scripts/image_facts.py
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
